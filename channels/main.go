@@ -4,6 +4,14 @@ import (
 	"fmt"
 )
 
+var counter int
+
+func incrementCounter(ch chan int) {
+	for i := range ch {
+		counter += i
+	}
+}
+
 func main() {
 	ch2 := make(chan string, 2)
 
@@ -19,4 +27,13 @@ func main() {
 
 	fmt.Println(<-ch2, "and", <-ch2, "plus", <-ch2)
 
+	counterCh := make(chan int)
+	go incrementCounter(counterCh)
+
+	for i := 0; i < 5; i++ {
+		counterCh <- 2 // Increment the counter by 1
+	}
+	close(counterCh) // Close the channel to signal completion
+
+	fmt.Println("Final counter value:", counter)
 }
