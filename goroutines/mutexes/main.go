@@ -46,10 +46,20 @@ func GenerateOrders(n int) []*Order {
 // }
 
 func UpdateOrders(order *Order) {
-	time.Sleep(time.Duration(rand.Intn(1000)) * time.Millisecond) // Simulate processing time
+	order.mu.Lock()
+	time.Sleep(
+		time.Duration(rand.Intn(1000)) *
+			time.Millisecond,
+	)
 	order.Status = OrdersStatuses[rand.Intn(len(OrdersStatuses))]
-	fmt.Printf("Updating Order ID: %d status to: %s\n", order.ID, order.Status)
+	order.mu.Unlock()
+	fmt.Printf(
+		"Updating Order ID: %d status to: %s\n",
+		order.ID, order.Status,
+	)
 
+	updateMutex.Lock()
+	defer updateMutex.Unlock()
 	currentUpdates := totalUpdates
 	time.Sleep(10 * time.Millisecond)
 	totalUpdates = currentUpdates + 1
@@ -84,5 +94,5 @@ func main() {
 	wg.Wait()
 
 	ReportOrderStatuses(orders)
-	fmt.Printf("Total Updates %d", totalUpdates)
+	fmt.Printf("Total Updates %d\n", totalUpdates)
 }
