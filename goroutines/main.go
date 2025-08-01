@@ -19,6 +19,10 @@ const (
 	StatusCompleted  = "completed"
 )
 
+var (
+	totalUpdates int
+	updateMutex  sync.Mutex
+)
 var OrdersStatuses = []string{StatusPending, StatusProcessing, StatusCompleted}
 
 func GenerateOrders(n int) []*Order {
@@ -45,11 +49,14 @@ func UpdateOrders(order *Order) {
 	time.Sleep(time.Duration(rand.Intn(1000)) * time.Millisecond) // Simulate processing time
 	order.Status = OrdersStatuses[rand.Intn(len(OrdersStatuses))]
 	fmt.Printf("Updating Order ID: %d status to: %s\n", order.ID, order.Status)
+
+	currentUpdates := totalUpdates
+	time.Sleep(10 * time.Millisecond)
+	totalUpdates = currentUpdates + 1
 }
 
 func ReportOrderStatuses(orders []*Order) {
 	for _, order := range orders {
-		time.Sleep(1 * time.Second)
 		fmt.Printf("OrderID: %d, Status: %s\n", order.ID, order.Status)
 	}
 }
@@ -77,4 +84,5 @@ func main() {
 	wg.Wait()
 
 	ReportOrderStatuses(orders)
+	fmt.Printf("Total Updates %d", totalUpdates)
 }
