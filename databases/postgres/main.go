@@ -3,12 +3,17 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	"os"
 
+	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 )
 
 func main() {
-	db, err := sql.Open("postgres", "postgres://lisa:lisa1234@192.168.88.13:5433/dvdrental?sslmode=disable")
+	err := godotenv.Load()
+
+	dsn := os.Getenv("POSTGRES_DSN")
+	db, err := sql.Open("postgres", dsn)
 	if err != nil {
 		fmt.Println("Error connecting to the database:", err)
 		return
