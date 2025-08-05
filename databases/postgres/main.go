@@ -31,6 +31,7 @@ func main() {
 
 	r := gin.Default()
 	r.GET("/actors/count", actorCountHandler(db))
+	r.GET("/actors/", actorListHandler(db))
 
 	r.Run("0.0.0.0:80800")
 
@@ -53,4 +54,40 @@ func actorCountHandler(db *sql.DB) gin.HandlerFunc {
 		c.String(200, "Number of actors: %d\n", rowCount)
 	}
 
+}
+
+func actorListHandler(db *sql.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		type Actor struct {
+			ActorID   int    `json:"actor_id"`
+			FirstName string `json:"first_name"`
+			LastName  string `json:"last_name"`
+		}
+
+		rows, err := db.Query("SELECT actor_id, first_name, last_name FROM actor")
+		if err != nil {
+			log.Println("Error querying database:", err)
+			c.String(500, "Internal Server Error")
+			return
+		}
+		defer rows.Close()
+
+		actors := []Actor{}
+		for rows.Next() {
+			var actor Actor
+			if err := rows.Scan(&actor.ActorID, &actor.FirstName, &actor.LastName); err != nil {
+				log.Println("Error scanning row:", err)
+				c.String(500, "Internal Server Error")
+				return
+			}
+			actors = append(actors, actor)
+		}
+
+		if err = rows.Err(); err != nil {
+			log.Println("Error during rows iteration:", err)
+			c.String(500, "Internal Server Error")
+			return
+		}
+		c.JSON(200, actors)
+	}
 }
