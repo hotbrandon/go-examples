@@ -4,9 +4,9 @@ import (
 	"database/sql"
 	"fmt"
 	"log"
-	"net/http"
 	"os"
 
+	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 )
@@ -29,18 +29,16 @@ func main() {
 	}
 	fmt.Println("Successfully connected to the database!")
 
-	http.HandleFunc("/actors/count", actorCountHandler(db))
+	r := gin.Default()
+	r.GET("/actors/count", actorCountHandler(db))
 
-	log.Println("Starting server on :8080")
-	if err := http.ListenAndServe(":8080", nil); err != nil {
-		log.Fatalf("Could not start server: %s\n", err)
-	}
+	r.Run("0.0.0.0:80800")
 
 }
 
 // actorCountHandler returns an http.HandlerFunc that closes over the db pool.
-func actorCountHandler(db *sql.DB) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
+func actorCountHandler(db *sql.DB) gin.HandlerFunc {
+	return func(c *gin.Context) {
 		rowCount := 0
 		// This query might fail if the DB connection is lost at runtime.
 		err := db.QueryRow("SELECT COUNT(*) FROM actor").Scan(&rowCount)
@@ -49,9 +47,10 @@ func actorCountHandler(db *sql.DB) http.HandlerFunc {
 			log.Printf("ERROR: could not query database: %v", err)
 
 			// Return a generic error to the client.
-			http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+			c.String(500, "Internal Server Error")
 			return
 		}
-		fmt.Fprintf(w, "Number of actors: %d\n", rowCount)
+		c.String(200, "Number of actors: %d\n", rowCount)
 	}
+
 }
