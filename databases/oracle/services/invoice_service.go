@@ -5,7 +5,7 @@ import (
 	"oracle-demo/models"
 )
 
-func GenerateC0401Invoice(segment_no string) ([]models.Invoice, error) {
+func GenerateC0401Invoice(segment_no, invoice_date string) ([]models.Invoice, error) {
 	// 從 Oracle 產出已開立發票
 	log.Println("Generating C0401 invoice for segment:", segment_no)
 	db, err := models.GetOracleConnection(segment_no)
