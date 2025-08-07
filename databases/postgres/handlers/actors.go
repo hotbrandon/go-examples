@@ -2,7 +2,10 @@ package handlers
 
 import (
 	"database/sql"
+	"encoding/csv"
 	"log"
+	"os"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 )
@@ -42,6 +45,24 @@ func ActorListHandler(db *sql.DB) gin.HandlerFunc {
 		}
 		defer rows.Close()
 
+		file, err := os.Create("actors.csv")
+		if err != nil {
+			log.Println("Error creating CSV file:", err)
+			c.String(500, "Internal Server Error")
+			return
+		}
+		defer file.Close()
+
+		writer := csv.NewWriter(file)
+		defer writer.Flush()
+
+		headers := []string{"Actor ID", "First Name", "Last Name"}
+		if err := writer.Write(headers); err != nil {
+			log.Println("Error writing headers:", err)
+			c.String(500, "Internal Server Error")
+			return
+		}
+
 		actors := []Actor{}
 		for rows.Next() {
 			var actor Actor
@@ -50,6 +71,17 @@ func ActorListHandler(db *sql.DB) gin.HandlerFunc {
 				c.String(500, "Internal Server Error")
 				return
 			}
+
+			if err := writer.Write([]string{
+				strconv.Itoa(actor.ActorID),
+				actor.FirstName,
+				actor.LastName,
+			}); err != nil {
+				log.Println("Error writing row to CSV:", err)
+				c.String(500, "Internal Server Error")
+				return
+			}
+
 			actors = append(actors, actor)
 		}
 

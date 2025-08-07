@@ -14,6 +14,9 @@ import (
 
 func main() {
 	err := godotenv.Load()
+	if err != nil {
+		log.Printf("cannot find .env file: %v", err)
+	}
 
 	dsn := os.Getenv("POSTGRES_DSN")
 	if dsn == "" {
@@ -32,7 +35,7 @@ func main() {
 
 	r := gin.Default()
 	r.GET("/actors/count", handlers.ActorCountHandler(db))
-	r.GET("/actors/", handlers.ActorListHandler(db))
+	r.GET("/actors", handlers.ActorListHandler(db))
 
 	r.Run("0.0.0.0:8080")
 
