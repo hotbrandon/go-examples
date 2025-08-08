@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"postgres-demo/handlers"
+	"postgres-demo/services"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
@@ -34,8 +35,12 @@ func main() {
 	fmt.Println("Successfully connected to the database!")
 
 	r := gin.Default()
-	r.GET("/actors/count", handlers.ActorCountHandler(db))
-	r.GET("/actors", handlers.ActorListHandler(db))
+
+	actorService := services.NewActorService(db)
+	actorHandler := handlers.NewActorHandler(actorService)
+
+	r.GET("/actors/count", actorHandler.ActorCountHandler())
+	r.GET("/actors", actorHandler.ActorListHandler())
 
 	r.Run("0.0.0.0:8080")
 
