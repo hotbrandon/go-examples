@@ -1,26 +1,28 @@
 package handlers
 
 import (
-	"database/sql"
-	"encoding/csv"
 	"log"
-	"os"
-	"strconv"
+	"postgres-demo/services"
 
 	"github.com/gin-gonic/gin"
 )
 
-// ActorCountHandler returns an http.HandlerFunc that closes over the db pool.
-func ActorCountHandler(db *sql.DB) gin.HandlerFunc {
-	return func(c *gin.Context) {
-		rowCount := 0
-		// This query might fail if the DB connection is lost at runtime.
-		err := db.QueryRow("SELECT COUNT(*) FROM actor").Scan(&rowCount)
-		if err != nil {
-			// Log the detailed error for server-side observability.
-			log.Printf("ERROR: could not query database: %v", err)
+type ActorHandler struct {
+	svc *services.ActorService
+}
 
-			// Return a generic error to the client.
+func NewActorHandler(svc *services.ActorService) *ActorHandler {
+	return &ActorHandler{
+		svc: svc,
+	}
+}
+
+// ActorCountHandler returns an http.HandlerFunc that closes over the db pool.
+func (h *ActorHandler) ActorCountHandler() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		rowCount, err := h.svc.ActorCount()
+		if err != nil {
+			log.Printf("ERROR: could not query database: %v", err)
 			c.String(500, "Internal Server Error")
 			return
 		}
@@ -29,64 +31,11 @@ func ActorCountHandler(db *sql.DB) gin.HandlerFunc {
 
 }
 
-func ActorListHandler(db *sql.DB) gin.HandlerFunc {
+func (h *ActorHandler) ActorListHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		type Actor struct {
-			ActorID   int    `json:"actor_id"`
-			FirstName string `json:"first_name"`
-			LastName  string `json:"last_name"`
-		}
-
-		rows, err := db.Query("SELECT actor_id, first_name, last_name FROM actor")
+		actors, err := h.svc.ActorList()
 		if err != nil {
 			log.Println("Error querying database:", err)
-			c.String(500, "Internal Server Error")
-			return
-		}
-		defer rows.Close()
-
-		file, err := os.Create("actors.csv")
-		if err != nil {
-			log.Println("Error creating CSV file:", err)
-			c.String(500, "Internal Server Error")
-			return
-		}
-		defer file.Close()
-
-		writer := csv.NewWriter(file)
-		defer writer.Flush()
-
-		headers := []string{"Actor ID", "First Name", "Last Name"}
-		if err := writer.Write(headers); err != nil {
-			log.Println("Error writing headers:", err)
-			c.String(500, "Internal Server Error")
-			return
-		}
-
-		actors := []Actor{}
-		for rows.Next() {
-			var actor Actor
-			if err := rows.Scan(&actor.ActorID, &actor.FirstName, &actor.LastName); err != nil {
-				log.Println("Error scanning row:", err)
-				c.String(500, "Internal Server Error")
-				return
-			}
-
-			if err := writer.Write([]string{
-				strconv.Itoa(actor.ActorID),
-				actor.FirstName,
-				actor.LastName,
-			}); err != nil {
-				log.Println("Error writing row to CSV:", err)
-				c.String(500, "Internal Server Error")
-				return
-			}
-
-			actors = append(actors, actor)
-		}
-
-		if err = rows.Err(); err != nil {
-			log.Println("Error during rows iteration:", err)
 			c.String(500, "Internal Server Error")
 			return
 		}
