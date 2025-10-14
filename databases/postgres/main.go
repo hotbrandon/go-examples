@@ -29,9 +29,6 @@ func main() {
 	}
 	defer db.Close()
 
-	if err := db.Ping(); err != nil {
-		log.Fatalf("Error pinging database: %v", err)
-	}
 	fmt.Println("Successfully connected to the database!")
 
 	r := gin.Default()
