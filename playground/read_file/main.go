@@ -23,11 +23,13 @@ func main() {
 	}
 	defer file.Close()
 
+	fileLength := 0
 	for {
 		n, err := file.Read(buffer)
 		//  ref. https://pkg.go.dev/io#Reader
 		if n > 0 {
 			os.Stdout.Write(buffer[:n])
+			fileLength += n
 		}
 		if err != nil {
 			if err == io.EOF {
@@ -36,4 +38,6 @@ func main() {
 			log.Fatal(err)
 		}
 	}
+
+	log.Printf("file length of %s is %d\n", os.Args[1], fileLength)
 }
