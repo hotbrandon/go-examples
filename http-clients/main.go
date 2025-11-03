@@ -44,10 +44,10 @@ func main() {
 
 	// Set up query parameters
 	q := req.URL.Query()
-	q.Add("dataset", "TaiwanStockPrice")
-	q.Add("data_id", "2337")
-	q.Add("start_date", "2025-10-31") // Example start date
-	q.Add("end_date", "2025-10-31")   // Example end date
+	q.Set("dataset", "TaiwanStockPrice")
+	q.Set("data_id", "2337")
+	q.Set("start_date", "2025-10-31") // Example start date
+	q.Set("end_date", "2025-10-31")   // Example end date
 
 	// Encode the parameters and attach them to the request URL
 	req.URL.RawQuery = q.Encode()
