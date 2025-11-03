@@ -9,7 +9,7 @@ import (
 )
 
 type Message struct {
-	// Chat ID can be acquired by calling curl https://api.telegram.org/bot7557656799:AAFfEyh3Va2XCnOlutbdaj7Ot9jAyL03CWI/getUpdates
+	// Chat ID can be acquired by calling curl https://api.telegram.org/bot<token>/getUpdates
 	ChatID string `json:"chat_id"`
 	Text   string `json:"text"`
 }
