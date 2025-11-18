@@ -74,8 +74,21 @@ func example2() {
 	}
 }
 
+func example3() {
+	//
+	person := map[string]interface{}{
+		"name": "Jack",
+		"age":  25,
+	}
+	jsonData, err := json.Marshal(person)
+	if err != nil {
+		panic(err)
+	}
+	log.Println("JSON Encoded:", string(jsonData))
+}
 func main() {
 	// tutorial: https://www.youtube.com/watch?v=Vr63uGL7NrU
-	example2()
+	// example2()
+	example3()
 
 }
